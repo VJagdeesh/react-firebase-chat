@@ -5,7 +5,7 @@ import Chat from "./components/Chat/Chat";
 import Login from "./components/Login/Login";
 import Notification from "./components/Notification/Notification";
 const App = () => {
-  const [user, setUser] = useState(false);
+  const [user, setUser] = useState(true);
   return (
     <div className="container">
       {user ? (
