@@ -1,13 +1,34 @@
 import React from "react";
 import "./Detail.css";
-import { auth } from "../../lib/firebase";
+import { auth, db } from "../../lib/firebase";
+import { useChatStore } from "../../store/chatStore";
+import { useUserStore } from "../../store/userStore";
+import { toast } from "react-toastify";
+import { arrayRemove, arrayUnion, doc, updateDoc } from "firebase/firestore";
 
 function Detail() {
+  const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, changeBlock } =
+    useChatStore();
+  const { currentUser } = useUserStore();
+  const handleBlock = async () => {
+    if (!user) return;
+    const userDocRef = await doc(db, "users", currentUser?.id);
+    try {
+      await updateDoc(userDocRef, {
+        blockedUsers: isReceiverBlocked
+          ? arrayRemove(user?.id)
+          : arrayUnion(user?.id),
+      });
+      changeBlock();
+    } catch (e) {
+      toast.error("Something went wrong");
+    }
+  };
   return (
     <div className="detail">
       <div className="user">
-        <img src="./avatar.png" alt="" />
-        <h2>Joe</h2>
+        <img src={user?.avatar || "./avatar.png"} alt="" />
+        <h2>{user?.username}</h2>
         <p>Can't talk. Whatsapp only!!!</p>
       </div>
       <div className="info">
@@ -51,7 +72,13 @@ function Detail() {
           </div>
         </div>
       </div>
-      <button>Block User</button>
+      <button onClick={handleBlock}>
+        {isCurrentUserBlocked
+          ? "You are blocked "
+          : isReceiverBlocked
+          ? "User blocked"
+          : "Block User"}
+      </button>
       <button className="logout" onClick={() => auth.signOut()}>
         Logout
       </button>
